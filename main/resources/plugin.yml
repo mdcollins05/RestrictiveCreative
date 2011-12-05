@@ -1,0 +1,17 @@
+author: MDCollins
+database: false
+description: Restricts certain aspects of creative mode to allow it to work within
+  survival while limiting cheating.
+generator: http://dinnerbone.com/minecraft/tools/pluginator/
+main: com.blockmovers.plugins.restrictivecreative.RestrictiveCreative
+name: Restrictive Creative
+startup: postworld
+url: http://blockmovers.com/
+version: '0.1'
+commands:
+  creative:
+    usage: /<command> player
+    aliases: c
+permissions:
+  restrictivecreative.creativeonjoin:
+    description: sets players to creative mode on join
