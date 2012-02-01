@@ -4,14 +4,64 @@ description: Restricts certain aspects of creative mode to allow it to work with
   survival while limiting cheating.
 generator: http://dinnerbone.com/minecraft/tools/pluginator/
 main: com.blockmovers.plugins.restrictivecreative.RestrictiveCreative
-name: Restrictive Creative
+name: RestrictiveCreative
 startup: postworld
 url: http://blockmovers.com/
-version: '0.1'
+version: '0.2'
 commands:
   creative:
-    usage: /<command> player
+    usage: /<command> (action) [player]
     aliases: c
 permissions:
   restrictivecreative.creativeonjoin:
+    default: false
     description: sets players to creative mode on join
+  restrictivecreative.keepinv:
+    default: false
+    description: allows players to keep their inventory
+  restrictivecreative.toggle:
+    default: false
+    description: allows the player to toggle the command
+  restrictivecreative.chest.open:
+    default: false
+    description: allows the player to open chests in creative
+  restrictivecreative.chest.break:
+    default: false
+    description: allows the player to break chests in creative
+  restrictivecreative.toggle.others:
+    default: false
+    description: allows the player to toggle the command for others
+    children:
+      restrictivecreative.toggle: true
+  restrictivecreative.exempt.all:
+    default: false
+    description: allows the player to be exempt from all block lists
+    children:
+      restrictivecreative.break.whitelist.exempt: true
+      restrictivecreative.break.blacklist.exempt: true
+      restrictivecreative.place.whitelist.exempt: true
+      restrictivecreative.place.blacklist.exempt: true
+  restrictivecreative.break.whitelist.exempt:
+    default: false
+    description: sets the player to exempt for the break whitelist
+  restrictivecreative.break.blacklist.exempt:
+    default: false
+    description: sets the player to exempt for the break blacklist
+  restrictivecreative.place.whitelist.exempt:
+    default: false
+    description: sets the player to exempt for the place whitelist
+  restrictivecreative.place.blacklist.exempt:
+    default: false
+    description: sets the player to exempt for the place blacklist
+  restrictivecreative.break.whitelist:
+    default: false
+    description: sets the player to use the break whitelist
+  restrictivecreative.break.blacklist:
+    default: false
+    description: sets the player to use the break blacklist
+  restrictivecreative.place.whitelist:
+    default: false
+    description: sets the player to use the place whitelist
+  restrictivecreative.place.blacklist:
+    default: false
+    description: sets the player to use the place blacklist
