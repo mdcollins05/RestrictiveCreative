@@ -5,15 +5,16 @@
 package com.blockmovers.plugins.restrictivecreative;
 
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
 /**
  *
  * @author MattC
  */
-public class RestrictiveCreativeBlockListener extends BlockListener {
+public class RestrictiveCreativeBlockListener implements Listener {
 
     private final RestrictiveCreative plugin;
 
@@ -21,7 +22,7 @@ public class RestrictiveCreativeBlockListener extends BlockListener {
         this.plugin = plugin;
     }
 
-    @Override
+    @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
         if (event.isCancelled()) {
             return;
@@ -32,18 +33,20 @@ public class RestrictiveCreativeBlockListener extends BlockListener {
         Integer item = event.getBlockPlaced().getTypeId();
         //String playername = player.getName();
 
-        if (!plugin.creative.contains(player)) {
-            return;
+        if (plugin.creative.contains(player)) {
+            if (!plugin.checkPerm(player, "creative", "place", item)) {
+                event.setCancelled(true);
+            }
         }
-
-        //player.getServer().broadcastMessage(playername + " placed a " + item);
-
-        if (!plugin.checkPerm(player, "place", item)) {
-            event.setCancelled(true);
+        else
+        {
+            if (!plugin.checkPerm(player, "general", "place", item)) {
+                event.setCancelled(true);
+            }
         }
     }
 
-    @Override
+    @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         if (event.isCancelled()) {
             return;
@@ -57,11 +60,19 @@ public class RestrictiveCreativeBlockListener extends BlockListener {
         if (!plugin.creative.contains(player)) {
             return;
         }
-        
+
         //player.getServer().broadcastMessage(playername + " broke " + item + ". looking for " + Material.BEDROCK.getId());
-        
-        if (!plugin.checkPerm(player, "break", item)) {
-            event.setCancelled(true);
+
+        if (plugin.creative.contains(player)) {
+            if (!plugin.checkPerm(player, "creative", "break", item)) {
+                event.setCancelled(true);
+            }
+        }
+        else
+        {
+            if (!plugin.checkPerm(player, "general", "break", item)) {
+                event.setCancelled(true);
+            }
         }
     }
 }

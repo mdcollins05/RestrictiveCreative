@@ -15,10 +15,6 @@ import org.bukkit.GameMode;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.block.BlockListener;
-import org.bukkit.event.entity.EntityListener;
-import org.bukkit.event.player.PlayerListener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -29,15 +25,22 @@ public class RestrictiveCreative extends JavaPlugin {
 
     static final Logger log = Logger.getLogger("Minecraft"); //set up our logger
     public Set<Player> creative = new HashSet<Player>(); //hashmap for who has this command enabled or not
-    public List<Integer> breakWhitelist = null;
-    public List<Integer> breakBlacklist = null;
-    public List<Integer> placeWhitelist = null;
-    public List<Integer> placeBlacklist = null;
-    public String configBreakListType = null;
-    public String configPlaceListType = null;
-    private PlayerListener playerListener = new RestrictiveCreativePlayerListener(this);
-    private EntityListener entityListener = new RestrictiveCreativeEntityListener(this);
-    private BlockListener blockListener = new RestrictiveCreativeBlockListener(this);
+    public List<Integer> creativeBreakWhitelist = null;
+    public List<Integer> creativeBreakBlacklist = null;
+    public List<Integer> creativePlaceWhitelist = null;
+    public List<Integer> creativePlaceBlacklist = null;
+    public String creativeConfigBreakListType = null;
+    public String creativeConfigPlaceListType = null;
+    public List<Integer> generalBreakWhitelist = null;
+    public List<Integer> generalBreakBlacklist = null;
+    public List<Integer> generalPlaceWhitelist = null;
+    public List<Integer> generalPlaceBlacklist = null;
+    public String generalConfigBreakListType = null;
+    public String generalConfigPlaceListType = null;
+    public Integer flightLimit = null;
+    //private PlayerListener = new RestrictiveCreativePlayerListener(this);
+    //private EntityListener Listener = new RestrictiveCreativeEntityListener(this);
+    //private BlockListener Listener = new RestrictiveCreativeBlockListener(this);
     //private SLAPI SLAPI = new SLAPI();
     //public FileConfiguration config; //config object
 
@@ -45,29 +48,41 @@ public class RestrictiveCreative extends JavaPlugin {
         PluginDescriptionFile pdffile = this.getDescription();
         PluginManager pm = this.getServer().getPluginManager(); //the plugin object which allows us to add listeners later on
 
-        pm.registerEvent(Event.Type.PLAYER_DROP_ITEM, playerListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_PICKUP_ITEM, playerListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_JOIN, playerListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_GAME_MODE_CHANGE, playerListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_BUCKET_EMPTY, playerListener, Event.Priority.Normal, this);
+        //pm.registerEvent(Event.Type.PLAYER_DROP_ITEM, playerListener, Event.Priority.Normal, this);
+        //pm.registerEvent(Event.Type.PLAYER_PICKUP_ITEM, playerListener, Event.Priority.Normal, this);
+        //pm.registerEvent(Event.Type.PLAYER_JOIN, playerListener, Event.Priority.Normal, this);
+        //pm.registerEvent(Event.Type.PLAYER_GAME_MODE_CHANGE, playerListener, Event.Priority.Normal, this);
+        //pm.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Event.Priority.Normal, this);
+        //pm.registerEvent(Event.Type.PLAYER_BUCKET_EMPTY, playerListener, Event.Priority.Normal, this);
 
-        pm.registerEvent(Event.Type.ENTITY_DAMAGE, entityListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.ENTITY_TARGET, entityListener, Event.Priority.Normal, this);
-        //pm.registerEvent(Event.Type.ITEM_SPAWN, entityListener, Event.Priority.Normal, this);
+        //pm.registerEvent(Event.Type.ENTITY_DAMAGE, entityListener, Event.Priority.Normal, this);
+        //pm.registerEvent(Event.Type.ENTITY_TARGET, entityListener, Event.Priority.Normal, this);
 
-        pm.registerEvent(Event.Type.BLOCK_PLACE, blockListener, Event.Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_BREAK, blockListener, Event.Priority.Normal, this);
+        //pm.registerEvent(Event.Type.BLOCK_PLACE, blockListener, Event.Priority.Normal, this);
+        //pm.registerEvent(Event.Type.BLOCK_BREAK, blockListener, Event.Priority.Normal, this);
+        getServer().getPluginManager().registerEvents(new RestrictiveCreativeBlockListener(this), this);
+        getServer().getPluginManager().registerEvents(new RestrictiveCreativeEntityListener(this), this);
+        getServer().getPluginManager().registerEvents(new RestrictiveCreativePlayerListener(this), this);
 
         loadConfiguration();
-
-        breakWhitelist = getConfig().getList("break.whitelist");
-        breakBlacklist = getConfig().getList("break.blacklist");
-        configBreakListType = getConfig().getString("break.defaultlist");
         
-        placeWhitelist = getConfig().getList("place.whitelist");
-        placeBlacklist = getConfig().getList("place.blacklist");
-        configPlaceListType = getConfig().getString("place.defaultlist");
+        flightLimit = getConfig().getInt("creative.fly.heightlimit");
+
+        creativeBreakWhitelist = getConfig().getIntegerList("creative.break.whitelist");
+        creativeBreakBlacklist = getConfig().getIntegerList("creative.break.blacklist");
+        creativeConfigBreakListType = getConfig().getString("creative.break.defaultlist");
+
+        creativePlaceWhitelist = getConfig().getIntegerList("creative.place.whitelist");
+        creativePlaceBlacklist = getConfig().getIntegerList("creative.place.blacklist");
+        creativeConfigPlaceListType = getConfig().getString("creative.place.defaultlist");
+        
+        generalBreakWhitelist = getConfig().getIntegerList("general.break.whitelist");
+        generalBreakBlacklist = getConfig().getIntegerList("general.break.blacklist");
+        generalConfigBreakListType = getConfig().getString("general.break.defaultlist");
+
+        generalPlaceWhitelist = getConfig().getIntegerList("general.place.whitelist");
+        generalPlaceBlacklist = getConfig().getIntegerList("general.place.blacklist");
+        generalConfigPlaceListType = getConfig().getString("general.place.defaultlist");
 
         log.info(pdffile.getName() + " version " + pdffile.getVersion() + " is enabled.");
     }
@@ -88,7 +103,7 @@ public class RestrictiveCreative extends JavaPlugin {
                         if (getServer().getPlayer(args[1]) != null) {
                             if (cs instanceof Player) {
                                 Player s = (Player) cs;
-                                if (s.hasPermission("restrictivecreative.toggle.others")) {
+                                if (s.hasPermission("rc.toggle.others")) {
                                     target = getServer().getPlayer(args[1]);
                                 } else {
                                     s.sendMessage(ChatColor.RED + "You don't have permission to do that!");
@@ -104,7 +119,7 @@ public class RestrictiveCreative extends JavaPlugin {
                     } else if (args.length == 1) {
                         if (cs instanceof Player) {
                             Player s = (Player) cs;
-                            if (s.hasPermission("restrictivecreative.toggle")) {
+                            if (s.hasPermission("rc.toggle")) {
                                 target = (Player) s;
                             } else {
                                 s.sendMessage(ChatColor.RED + "You don't have permission to do that!");
@@ -127,7 +142,12 @@ public class RestrictiveCreative extends JavaPlugin {
         return false;
     }
 
-    public boolean checkPerm(Player player, String action, Integer item) {
+    public boolean playerStanding(Player player) {
+        //get location coords, check blocks on all sides if within .25 of solid block
+        return false;
+    }
+    
+    public boolean checkPerm(Player player, String mode, String action, Integer item) {
         boolean listapplied = false;
         boolean exemptblacklist = false;
         boolean exemptwhitelist = false;
@@ -136,30 +156,53 @@ public class RestrictiveCreative extends JavaPlugin {
         String list = null;
         List<Integer> blacklist = null;
         List<Integer> whitelist = null;
-        
-        if (action.equalsIgnoreCase("place")) {
-            list = this.configPlaceListType;
-            whitelist = this.placeWhitelist;
-            blacklist = this.placeBlacklist;
-            whitelistperm = player.hasPermission("restrictivecreative.place.whitelist");
-            blacklistperm = player.hasPermission("restrictivecreative.place.blacklist");
-            exemptwhitelist = player.hasPermission("restrictivecreative.place.whitelist.exempt");
-            exemptblacklist = player.hasPermission("restrictivecreative.place.blacklist.exempt");
+
+        if (mode.equalsIgnoreCase("creative")) {
+            if (action.equalsIgnoreCase("place")) {
+                list = this.creativeConfigPlaceListType;
+                whitelist = this.creativePlaceWhitelist;
+                blacklist = this.creativePlaceBlacklist;
+                whitelistperm = player.hasPermission("rc.creative.place.whitelist");
+                blacklistperm = player.hasPermission("rc.creative.place.blacklist");
+                exemptwhitelist = player.hasPermission("rc.creative.place.whitelist.exempt");
+                exemptblacklist = player.hasPermission("rc.creative.place.blacklist.exempt");
+            } else if (action.equalsIgnoreCase("break")) {
+                list = this.creativeConfigBreakListType;
+                whitelist = this.creativeBreakWhitelist;
+                blacklist = this.creativeBreakBlacklist;
+                whitelistperm = player.hasPermission("rc.creative.break.whitelist");
+                blacklistperm = player.hasPermission("rc.creative.break.blacklist");
+                exemptwhitelist = player.hasPermission("rc.creative.break.whitelist.exempt");
+                exemptblacklist = player.hasPermission("rc.creative.break.blacklist.exempt");
+            } else {
+                return false;
+            }
         }
-        else if (action.equalsIgnoreCase("break")) {
-            list = this.configBreakListType;
-            whitelist = this.breakWhitelist;
-            blacklist = this.breakBlacklist;
-            whitelistperm = player.hasPermission("restrictivecreative.break.whitelist");
-            blacklistperm = player.hasPermission("restrictivecreative.break.blacklist");
-            exemptwhitelist = player.hasPermission("restrictivecreative.break.whitelist.exempt");
-            exemptblacklist = player.hasPermission("restrictivecreative.break.blacklist.exempt");
-        }
-        else
-        {
-            return false;
-        }
-        
+        else if (mode.equalsIgnoreCase("general")) {
+            if (action.equalsIgnoreCase("place")) {
+                list = this.generalConfigPlaceListType;
+                whitelist = this.generalPlaceWhitelist;
+                blacklist = this.generalPlaceBlacklist;
+                whitelistperm = player.hasPermission("rc.general.place.whitelist");
+                blacklistperm = player.hasPermission("rc.general.place.blacklist");
+                exemptwhitelist = player.hasPermission("rc.general.place.whitelist.exempt");
+                exemptblacklist = player.hasPermission("rc.general.place.blacklist.exempt");
+            } else if (action.equalsIgnoreCase("break")) {
+                list = this.generalConfigBreakListType;
+                whitelist = this.generalBreakWhitelist;
+                blacklist = this.generalBreakBlacklist;
+                whitelistperm = player.hasPermission("rc.general.break.whitelist");
+                blacklistperm = player.hasPermission("rc.general.break.blacklist");
+                exemptwhitelist = player.hasPermission("rc.general.break.whitelist.exempt");
+                exemptblacklist = player.hasPermission("rc.general.break.blacklist.exempt");
+            } else {
+                return false;
+            }
+        } else {
+                return false;
+            }
+
+
         if (!exemptwhitelist) {
             if (!whitelist.contains(item)) {
                 if (list.equalsIgnoreCase("whitelist")) {
@@ -170,7 +213,7 @@ public class RestrictiveCreative extends JavaPlugin {
                 }
             }
         }
-        
+
         if (!exemptblacklist) {
             if (blacklist.contains(item)) {
                 if (list.equalsIgnoreCase("blacklist")) {
@@ -181,7 +224,7 @@ public class RestrictiveCreative extends JavaPlugin {
                 }
             }
         }
-        
+
 //        if (list.equalsIgnoreCase("whitelist") || whitelistperm) {
 //            if (!whitelist.contains(item)) {
 //                if (!exemptwhitelist) {
@@ -214,7 +257,7 @@ public class RestrictiveCreative extends JavaPlugin {
         new File(invPath).mkdir();
         File backupFile = new File(path);
         if (!this.creative.contains(p) | enable) {
-            if (!p.hasPermission("restrictivecreative.keepinv")) {
+            if (!p.hasPermission("rc.keepinv")) {
                 if (!backupFile.exists()) {
                     try {
                         backupFile.createNewFile();
@@ -254,7 +297,7 @@ public class RestrictiveCreative extends JavaPlugin {
             p.setGameMode(GameMode.CREATIVE);
             this.creative.add(p);
         } else {
-            if (!p.hasPermission("restrictivecreative.keepinv")) {
+            if (!p.hasPermission("rc.keepinv")) {
                 try {
                     if (!backupFile.exists()) {
                         return;
@@ -306,7 +349,9 @@ public class RestrictiveCreative extends JavaPlugin {
     }
 
     public void loadConfiguration() {
-        getConfig().addDefault("break.defaultlist", "blacklist");
+        getConfig().addDefault("creative.fly.heightlimit", 5);
+        //creative break blacklist/whitelist
+        getConfig().addDefault("creative.break.defaultlist", "blacklist");
         List<Integer> breakwhitelist = new ArrayList();
         breakwhitelist.add(2);
         breakwhitelist.add(3);
@@ -316,11 +361,12 @@ public class RestrictiveCreative extends JavaPlugin {
         breakwhitelist.add(17);
         breakwhitelist.add(35);
         breakwhitelist.add(50);
-        getConfig().addDefault("break.whitelist", breakwhitelist);
+        getConfig().addDefault("creative.break.whitelist", breakwhitelist);
         List<Integer> breakblacklist = new ArrayList();
         breakblacklist.add(7);
-        getConfig().addDefault("break.blacklist", breakblacklist);
-        getConfig().addDefault("place.defaultlist", "whitelist");
+        getConfig().addDefault("creative.break.blacklist", breakblacklist);
+        //creative place blacklist/whitelist
+        getConfig().addDefault("creative.place.defaultlist", "whitelist");
         List<Integer> placewhitelist = new ArrayList();
         placewhitelist.add(2);
         placewhitelist.add(3);
@@ -330,14 +376,44 @@ public class RestrictiveCreative extends JavaPlugin {
         placewhitelist.add(17);
         placewhitelist.add(35);
         placewhitelist.add(50);
-        getConfig().addDefault("place.whitelist", placewhitelist);
+        getConfig().addDefault("creative.place.whitelist", placewhitelist);
         List<Integer> placeblacklist = new ArrayList();
         placeblacklist.add(7);
         placeblacklist.add(10);
         placeblacklist.add(11);
         placeblacklist.add(51);
         placeblacklist.add(52);
-        getConfig().addDefault("place.blacklist", placeblacklist);
+        getConfig().addDefault("creative.place.blacklist", placeblacklist);
+        //general place blacklist/whitelist
+        getConfig().addDefault("general.place.defaultlist", "blacklist");
+        List<Integer> genplacewhitelist = new ArrayList();
+        genplacewhitelist.add(2);
+        genplacewhitelist.add(3);
+        genplacewhitelist.add(4);
+        genplacewhitelist.add(12);
+        genplacewhitelist.add(13);
+        genplacewhitelist.add(17);
+        genplacewhitelist.add(35);
+        genplacewhitelist.add(50);
+        getConfig().addDefault("general.place.whitelist", genplacewhitelist);
+        List<Integer> genplaceblacklist = new ArrayList();
+        genplaceblacklist.add(7);
+        getConfig().addDefault("general.place.blacklist", genplaceblacklist);
+        //general break blacklist/whitelist
+        getConfig().addDefault("general.break.defaultlist", "blacklist");
+        List<Integer> genbreakwhitelist = new ArrayList();
+        genbreakwhitelist.add(2);
+        genbreakwhitelist.add(3);
+        genbreakwhitelist.add(4);
+        genbreakwhitelist.add(12);
+        genbreakwhitelist.add(13);
+        genbreakwhitelist.add(17);
+        genbreakwhitelist.add(35);
+        genbreakwhitelist.add(50);
+        getConfig().addDefault("general.break.whitelist", genbreakwhitelist);
+        List<Integer> genbreakblacklist = new ArrayList();
+        genbreakblacklist.add(7);
+        getConfig().addDefault("general.break.blacklist", genbreakblacklist);
         getConfig().options().copyDefaults(true);
         //Save the config whenever you manipulate it
         saveConfig();

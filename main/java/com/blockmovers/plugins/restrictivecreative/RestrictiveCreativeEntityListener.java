@@ -6,16 +6,17 @@ package com.blockmovers.plugins.restrictivecreative;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityListener;
 import org.bukkit.event.entity.EntityTargetEvent;
 
 /**
  *
  * @author MattC
  */
-public class RestrictiveCreativeEntityListener extends EntityListener {
+public class RestrictiveCreativeEntityListener implements Listener {
 
     private final RestrictiveCreative plugin;
 
@@ -23,7 +24,7 @@ public class RestrictiveCreativeEntityListener extends EntityListener {
         this.plugin = plugin;
     }
 
-    @Override
+    @EventHandler
     public void onEntityDamage(EntityDamageEvent event) {
         if (event.isCancelled()) {
             return;
@@ -42,7 +43,7 @@ public class RestrictiveCreativeEntityListener extends EntityListener {
         }
     }
 
-    @Override
+    @EventHandler
     public void onEntityTarget(EntityTargetEvent event) {
         if (event.isCancelled()) {
             return;
