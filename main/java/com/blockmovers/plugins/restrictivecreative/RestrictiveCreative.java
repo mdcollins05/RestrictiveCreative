@@ -12,10 +12,10 @@ import java.util.Set;
 import java.util.logging.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
@@ -37,7 +37,10 @@ public class RestrictiveCreative extends JavaPlugin {
     public List<Integer> generalPlaceBlacklist = null;
     public String generalConfigBreakListType = null;
     public String generalConfigPlaceListType = null;
+    public List<Integer> creativeItemUseBlackList = null;
+    public List<Integer> generalItemUseBlackList = null;
     public Integer flightLimit = null;
+    public List<Material> droppableItems = new ArrayList();
     //private PlayerListener = new RestrictiveCreativePlayerListener(this);
     //private EntityListener Listener = new RestrictiveCreativeEntityListener(this);
     //private BlockListener Listener = new RestrictiveCreativeBlockListener(this);
@@ -65,7 +68,7 @@ public class RestrictiveCreative extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new RestrictiveCreativePlayerListener(this), this);
 
         loadConfiguration();
-        
+
         flightLimit = getConfig().getInt("creative.fly.heightlimit");
 
         creativeBreakWhitelist = getConfig().getIntegerList("creative.break.whitelist");
@@ -75,7 +78,7 @@ public class RestrictiveCreative extends JavaPlugin {
         creativePlaceWhitelist = getConfig().getIntegerList("creative.place.whitelist");
         creativePlaceBlacklist = getConfig().getIntegerList("creative.place.blacklist");
         creativeConfigPlaceListType = getConfig().getString("creative.place.defaultlist");
-        
+
         generalBreakWhitelist = getConfig().getIntegerList("general.break.whitelist");
         generalBreakBlacklist = getConfig().getIntegerList("general.break.blacklist");
         generalConfigBreakListType = getConfig().getString("general.break.defaultlist");
@@ -83,6 +86,19 @@ public class RestrictiveCreative extends JavaPlugin {
         generalPlaceWhitelist = getConfig().getIntegerList("general.place.whitelist");
         generalPlaceBlacklist = getConfig().getIntegerList("general.place.blacklist");
         generalConfigPlaceListType = getConfig().getString("general.place.defaultlist");
+
+        creativeItemUseBlackList = getConfig().getIntegerList("creative.items.blacklist");
+        generalItemUseBlackList = getConfig().getIntegerList("general.items.blacklist");
+        
+        droppableItems.add(Material.DETECTOR_RAIL);
+        droppableItems.add(Material.DIODE);
+        droppableItems.add(Material.LEVER);
+        droppableItems.add(Material.RAILS);
+        droppableItems.add(Material.REDSTONE_WIRE);
+        droppableItems.add(Material.STONE_BUTTON);
+        droppableItems.add(Material.TORCH);
+        droppableItems.add(Material.WOODEN_DOOR);
+        droppableItems.add(Material.IRON_DOOR_BLOCK);
 
         log.info(pdffile.getName() + " version " + pdffile.getVersion() + " is enabled.");
     }
@@ -146,7 +162,7 @@ public class RestrictiveCreative extends JavaPlugin {
         //get location coords, check blocks on all sides if within .25 of solid block
         return false;
     }
-    
+
     public boolean checkPerm(Player player, String mode, String action, Integer item) {
         boolean listapplied = false;
         boolean exemptblacklist = false;
@@ -174,11 +190,18 @@ public class RestrictiveCreative extends JavaPlugin {
                 blacklistperm = player.hasPermission("rc.creative.break.blacklist");
                 exemptwhitelist = player.hasPermission("rc.creative.break.whitelist.exempt");
                 exemptblacklist = player.hasPermission("rc.creative.break.blacklist.exempt");
+            } else if (action.equalsIgnoreCase("use")) {
+                list = "blacklist";
+                //whitelist = this.creativeBreakWhitelist;
+                blacklist = this.creativeItemUseBlackList;
+                //whitelistperm = player.hasPermission("rc.creative.break.whitelist");
+                //blacklistperm = player.hasPermission("rc.creative.break.blacklist");
+                //exemptwhitelist = player.hasPermission("rc.creative.break.whitelist.exempt");
+                exemptblacklist = player.hasPermission("rc.creative.items.exempt");
             } else {
                 return false;
             }
-        }
-        else if (mode.equalsIgnoreCase("general")) {
+        } else if (mode.equalsIgnoreCase("general")) {
             if (action.equalsIgnoreCase("place")) {
                 list = this.generalConfigPlaceListType;
                 whitelist = this.generalPlaceWhitelist;
@@ -195,32 +218,44 @@ public class RestrictiveCreative extends JavaPlugin {
                 blacklistperm = player.hasPermission("rc.general.break.blacklist");
                 exemptwhitelist = player.hasPermission("rc.general.break.whitelist.exempt");
                 exemptblacklist = player.hasPermission("rc.general.break.blacklist.exempt");
+            } else if (action.equalsIgnoreCase("use")) {
+                list = "blacklist";
+                //whitelist = this.creativeBreakWhitelist;
+                blacklist = this.generalItemUseBlackList;
+                //whitelistperm = player.hasPermission("rc.creative.break.whitelist");
+                //blacklistperm = player.hasPermission("rc.creative.break.blacklist");
+                //exemptwhitelist = player.hasPermission("rc.creative.break.whitelist.exempt");
+                exemptblacklist = player.hasPermission("rc.general.items.exempt");
             } else {
                 return false;
             }
         } else {
-                return false;
-            }
+            return false;
+        }
 
 
-        if (!exemptwhitelist) {
-            if (!whitelist.contains(item)) {
-                if (list.equalsIgnoreCase("whitelist")) {
-                    listapplied = true;
-                }
-                if (whitelistperm) {
-                    listapplied = true;
+        if (whitelist != null) {
+            if (!exemptwhitelist) {
+                if (!whitelist.contains(item)) {
+                    if (list.equalsIgnoreCase("whitelist")) {
+                        listapplied = true;
+                    }
+                    if (whitelistperm) {
+                        listapplied = true;
+                    }
                 }
             }
         }
 
-        if (!exemptblacklist) {
-            if (blacklist.contains(item)) {
-                if (list.equalsIgnoreCase("blacklist")) {
-                    listapplied = true;
-                }
-                if (blacklistperm) {
-                    listapplied = true;
+        if (blacklist != null) {
+            if (!exemptblacklist) {
+                if (blacklist.contains(item)) {
+                    if (list.equalsIgnoreCase("blacklist")) {
+                        listapplied = true;
+                    }
+                    if (blacklistperm) {
+                        listapplied = true;
+                    }
                 }
             }
         }
@@ -250,9 +285,8 @@ public class RestrictiveCreative extends JavaPlugin {
     }
 
     public void toggleCreative(Player p, boolean enable) {
-        ItemStack[] stacks = null;
         String playername = p.getPlayerListName();
-        String invPath = "plugins" + File.separator + "RestrictiveCreative" + File.separator + "playerdata";
+        String invPath = getDataFolder() + File.separator + "playerdata";
         String path = invPath + File.separator + playername + ".bin";
         new File(invPath).mkdir();
         File backupFile = new File(path);
@@ -267,20 +301,13 @@ public class RestrictiveCreative extends JavaPlugin {
                     }
                 }
 
-                ItemStack[] items = p.getInventory().getContents();
-                ItemStack[] armor = p.getInventory().getArmorContents();
                 try {
-                    InventoryItem[] inv = new InventoryItem[items.length + armor.length];
-                    for (int i = 0; i < items.length; i++) {
-                        inv[i] = InventoryItem.parseItemStack(items[i]);
-                    }
-                    for (int i = 0; i < armor.length; i++) {
-                        inv[(i + items.length)] = InventoryItem.parseItemStack(armor[i]);
-                    }
+                    SerializableInventory inv = new SerializableInventory(p.getInventory());
 
-                    ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(path));
+                    FileOutputStream fos = new FileOutputStream(backupFile);
+                    ObjectOutputStream oos = new ObjectOutputStream(fos);
+
                     oos.writeObject(inv);
-                    oos.flush();
                     oos.close();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -305,43 +332,19 @@ public class RestrictiveCreative extends JavaPlugin {
 
                     FileInputStream fis = new FileInputStream(backupFile);
                     ObjectInputStream ois = new ObjectInputStream(fis);
-                    InventoryItem[] fromFile = (InventoryItem[]) ois.readObject();
+
+                    Object o = ois.readObject();
                     ois.close();
+
+                    SerializableInventory inv = (SerializableInventory) o;
+                    SerializableInventory.loadContents(p, inv);
 
                     backupFile.delete();
 
-                    stacks = InventoryItem.toItemStacks(fromFile);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    log.info("RestrictiveCreative - Couldn't get backup for " + p.getName());
-                }
-                //list = (ArrayList<Object>)SLAPI.load("example.bin");
-                //ItemStack[] stacks = SLAPI.load("example.bin");
-                if (stacks == null) {
                     log.info("RestrictiveCreative - Couldn't restore backup for " + p.getName());
-                    return;
                 }
-
-                if (!p.isOnline()) {
-                    System.out.println("THE WORLD IS GOING TO END! SOMETHING IS WRONG!");
-                }
-
-                ItemStack[] items = new ItemStack[stacks.length - 4];
-                ItemStack[] armor = new ItemStack[4];
-
-                for (int i = 0; i < stacks.length - 4; i++) {
-                    items[i] = stacks[i];
-                }
-                for (int i = 0; i < 4; i++) {
-                    armor[i] = stacks[(stacks.length - 4 + i)];
-                }
-
-                PlayerInventory inv = p.getInventory();
-                inv.setArmorContents(armor);
-                for (int i = 0; i < items.length; i++) {
-                    inv.setItem(i, items[i]);
-                }
-
             }
             p.setGameMode(GameMode.SURVIVAL);
             this.creative.remove(p);
@@ -350,6 +353,7 @@ public class RestrictiveCreative extends JavaPlugin {
 
     public void loadConfiguration() {
         getConfig().addDefault("creative.fly.heightlimit", 5);
+        
         //creative break blacklist/whitelist
         getConfig().addDefault("creative.break.defaultlist", "blacklist");
         List<Integer> breakwhitelist = new ArrayList();
@@ -365,6 +369,7 @@ public class RestrictiveCreative extends JavaPlugin {
         List<Integer> breakblacklist = new ArrayList();
         breakblacklist.add(7);
         getConfig().addDefault("creative.break.blacklist", breakblacklist);
+        
         //creative place blacklist/whitelist
         getConfig().addDefault("creative.place.defaultlist", "whitelist");
         List<Integer> placewhitelist = new ArrayList();
@@ -384,6 +389,7 @@ public class RestrictiveCreative extends JavaPlugin {
         placeblacklist.add(51);
         placeblacklist.add(52);
         getConfig().addDefault("creative.place.blacklist", placeblacklist);
+        
         //general place blacklist/whitelist
         getConfig().addDefault("general.place.defaultlist", "blacklist");
         List<Integer> genplacewhitelist = new ArrayList();
@@ -399,6 +405,7 @@ public class RestrictiveCreative extends JavaPlugin {
         List<Integer> genplaceblacklist = new ArrayList();
         genplaceblacklist.add(7);
         getConfig().addDefault("general.place.blacklist", genplaceblacklist);
+        
         //general break blacklist/whitelist
         getConfig().addDefault("general.break.defaultlist", "blacklist");
         List<Integer> genbreakwhitelist = new ArrayList();
@@ -413,7 +420,18 @@ public class RestrictiveCreative extends JavaPlugin {
         getConfig().addDefault("general.break.whitelist", genbreakwhitelist);
         List<Integer> genbreakblacklist = new ArrayList();
         genbreakblacklist.add(7);
-        getConfig().addDefault("general.break.blacklist", genbreakblacklist);
+
+        //items blacklists
+        List<Integer> itemblacklist = new ArrayList();
+        itemblacklist.add(381);
+        itemblacklist.add(383);
+        itemblacklist.add(384);
+        itemblacklist.add(385);
+        itemblacklist.add(259);
+        getConfig().addDefault("creative.items.blacklist", itemblacklist);
+        List<Integer> genitemblacklist = new ArrayList();
+        genitemblacklist.add(384);
+        getConfig().addDefault("general.items.blacklist", genitemblacklist);
         getConfig().options().copyDefaults(true);
         //Save the config whenever you manipulate it
         saveConfig();

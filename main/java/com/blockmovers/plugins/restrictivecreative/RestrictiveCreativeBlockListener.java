@@ -4,6 +4,9 @@
  */
 package com.blockmovers.plugins.restrictivecreative;
 
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -37,9 +40,7 @@ public class RestrictiveCreativeBlockListener implements Listener {
             if (!plugin.checkPerm(player, "creative", "place", item)) {
                 event.setCancelled(true);
             }
-        }
-        else
-        {
+        } else {
             if (!plugin.checkPerm(player, "general", "place", item)) {
                 event.setCancelled(true);
             }
@@ -66,10 +67,13 @@ public class RestrictiveCreativeBlockListener implements Listener {
         if (plugin.creative.contains(player)) {
             if (!plugin.checkPerm(player, "creative", "break", item)) {
                 event.setCancelled(true);
+            } else {
+                Block blockAbove = event.getBlock().getRelative(BlockFace.UP);
+                if (plugin.droppableItems.contains(blockAbove.getType())) {
+                    blockAbove.setType(Material.AIR);
+                }
             }
-        }
-        else
-        {
+        } else {
             if (!plugin.checkPerm(player, "general", "break", item)) {
                 event.setCancelled(true);
             }

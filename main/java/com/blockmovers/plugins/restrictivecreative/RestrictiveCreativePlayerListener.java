@@ -8,8 +8,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -38,13 +36,11 @@ public class RestrictiveCreativePlayerListener implements Listener {
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         Player player = event.getPlayer();
 
-        Item item = event.getItemDrop();
-
         if (!plugin.creative.contains(player)) {
             return;
         }
 
-        item.remove();
+        event.getItemDrop().remove();
         //event.setCancelled(true);
         //event.
     }
@@ -70,7 +66,7 @@ public class RestrictiveCreativePlayerListener implements Listener {
         if (player.hasPermission("rc.allow.fly")) {
             return;
         }
-        
+
         Location l = player.getLocation();
         Integer x = l.getBlockX();
         Integer y = l.getBlockY(); //height
@@ -85,7 +81,7 @@ public class RestrictiveCreativePlayerListener implements Listener {
                 break;
             }
             if (i == plugin.flightLimit) {
-                double newy = testy + 4;
+                double newy = player.getLocation().getY() - (plugin.flightLimit / 2);
                 player.teleport(new Location(player.getWorld(), player.getLocation().getX(), newy, player.getLocation().getZ(), yaw, pitch));
                 player.sendMessage(ChatColor.RED + "Flying too high is dangerous.");
             }
@@ -100,30 +96,126 @@ public class RestrictiveCreativePlayerListener implements Listener {
         }
 
         Action action = event.getAction();
-        String actionname = event.getEventName();
-        Block block = event.getClickedBlock();
-        int type = block.getTypeId();
+        Integer block = event.getClickedBlock().getTypeId();
         Player player = event.getPlayer();
+        Integer item = player.getItemInHand().getTypeId();
 
-        if (!plugin.creative.contains(player)) {
-            return;
+
+        //if (player.getItemInHand().getTypeId() == 384 || player.getItemInHand().getTypeId() == 383) {
+        //    if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
+        //       
+        //    }
+        //}
+
+//        if (plugin.creative.contains(player)) {
+//            player.sendMessage("creative mode " + item);
+//            if (plugin.creativeItemUseBlackList.contains(item)) {
+//                player.sendMessage("item in list");
+//                if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
+//                    player.sendMessage("right click");
+//                    if (plugin.checkPerm(player, "creative", "use", item)) {
+//                        player.sendMessage("item in list");
+//                        event.setCancelled(true);
+//                    }
+//                }
+//            }
+//        } else {
+//            if (plugin.generalItemUseBlackList.contains(item)) {
+//                if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
+//                    if (plugin.checkPerm(player, "general", "use", item)) {
+//                        event.setCancelled(true);
+//                    }
+//                }
+//            }
+//            return; // if not creative dont check below
+//        }
+
+        if (action == Action.RIGHT_CLICK_AIR | action == Action.RIGHT_CLICK_BLOCK) {
+            if (plugin.creative.contains(player)) {
+                if (plugin.creativeItemUseBlackList.contains(item)) {
+                    if (!plugin.checkPerm(player, "creative", "use", item)) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+            } else {
+                if (plugin.generalItemUseBlackList.contains(item)) {
+                    if (!plugin.checkPerm(player, "general", "use", item)) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+            }
+
         }
 
-        if (action == Action.RIGHT_CLICK_BLOCK) {
-            if (type == Material.CHEST.getId()) {
-                if (!player.hasPermission("rc.chest.open")) {
-                    player.sendMessage(ChatColor.RED + "You can't open chests in this mode.");
-                    event.setCancelled(true);
+        if (plugin.creative.contains(player)) {
+            if (action == Action.RIGHT_CLICK_BLOCK) {
+                if (block == Material.CHEST.getId()) {
+                    if (!player.hasPermission("rc.chest.open")) {
+                        player.sendMessage(ChatColor.RED + "You can't open chests in this mode.");
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+                if (block == Material.FURNACE.getId()) {
+                    if (!player.hasPermission("rc.furnace.open")) {
+                        player.sendMessage(ChatColor.RED + "You can't open furnaces in this mode.");
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+                if (block == Material.DISPENSER.getId()) {
+                    if (!player.hasPermission("rc.dispenser.open")) {
+                        player.sendMessage(ChatColor.RED + "You can't open dispensers in this mode.");
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+                if (block == Material.JUKEBOX.getId()) {
+                    if (!player.hasPermission("rc.jukebox.open")) {
+                        player.sendMessage(ChatColor.RED + "You can't open jukeboxes in this mode.");
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+                if (block == Material.ENCHANTMENT_TABLE.getId()) {
+                    if (!player.hasPermission("rc.enchant.open")) {
+                        player.sendMessage(ChatColor.RED + "You can't use enchantment tables in this mode.");
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+            } else if (action == Action.LEFT_CLICK_BLOCK) {
+                if (block == Material.CHEST.getId()) {
+                    if (!player.hasPermission("rc.chest.break")) {
+                        player.sendMessage(ChatColor.RED + "You can't destroy chests in this mode.");
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+                if (block == Material.FURNACE.getId()) {
+                    if (!player.hasPermission("rc.furnace.break")) {
+                        player.sendMessage(ChatColor.RED + "You can't destroy furnaces in this mode.");
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+                if (block == Material.DISPENSER.getId()) {
+                    if (!player.hasPermission("rc.dispenser.break")) {
+                        player.sendMessage(ChatColor.RED + "You can't destroy dispensers in this mode.");
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+                if (block == Material.JUKEBOX.getId()) {
+                    if (!player.hasPermission("rc.jukebox.break")) {
+                        player.sendMessage(ChatColor.RED + "You can't destroy jukeboxes in this mode.");
+                        event.setCancelled(true);
+                        return;
+                    }
                 }
             }
-        } else if (action == Action.LEFT_CLICK_BLOCK) {
-            if (type == Material.CHEST.getId()) {
-                if (!player.hasPermission("rc.chest.break")) {
-                    player.sendMessage(ChatColor.RED + "You can't destroy chests in this mode.");
-                    event.setCancelled(true);
-                }
-            }
-
         }
         //player.getServer().broadcastMessage(player + " interact event: " + actionname);
         return;
@@ -173,11 +265,14 @@ public class RestrictiveCreativePlayerListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        if (player.hasPermission("rc.creativeonjoin")) {
-            plugin.toggleCreative(player, true);
-            return;
-        } else {
-            player.setGameMode(GameMode.SURVIVAL);
+        if (player.getGameMode() == GameMode.CREATIVE) { //creative mode
+            if (!plugin.creative.contains(player)) {
+                plugin.creative.add(player);
+            }
+        } else { //not creative mode
+            if (plugin.creative.contains(player)) {
+                plugin.creative.remove(player);
+            }
         }
     }
 
@@ -187,13 +282,16 @@ public class RestrictiveCreativePlayerListener implements Listener {
             return;
         }
 
-        GameMode gameMode = event.getPlayer().getGameMode();
         Player player = event.getPlayer();
 
-        if (gameMode.getValue() == 0) {
-            plugin.creative.add(player);
-        } else if (gameMode.getValue() == 1) {
-            plugin.creative.remove(player);
+        if (event.getNewGameMode() == GameMode.CREATIVE) { //creative mode
+            if (!plugin.creative.contains(player)) {
+                plugin.creative.add(player);
+            }
+        } else { //not creative mode
+            if (plugin.creative.contains(player)) {
+                plugin.creative.remove(player);
+            }
         }
     }
 }
