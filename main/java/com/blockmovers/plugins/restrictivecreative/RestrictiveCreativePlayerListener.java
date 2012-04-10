@@ -12,13 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerBucketEmptyEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerGameModeChangeEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.player.*;
 
 /**
  *
@@ -56,12 +50,11 @@ public class RestrictiveCreativePlayerListener implements Listener {
 
         if (!plugin.creative.contains(player)) {
             return;
+        } else {
+            if (!player.isFlying()) {
+                return;
+            }
         }
-        //else {
-        //    if (player.isSneaking()) {
-        //        return;
-        //    }
-        //}
 
         if (player.hasPermission("rc.allow.fly")) {
             return;
@@ -74,16 +67,25 @@ public class RestrictiveCreativePlayerListener implements Listener {
         Float yaw = l.getYaw();
         Float pitch = l.getPitch();
 
-        for (int i = 0; i <= plugin.flightLimit; i++) {
+        Integer checkLimit = player.getWorld().getMaxHeight();
+        Integer highestUnderPlayer = null;
+
+        for (int i = 0; i <= checkLimit; i++) {
             Integer testy = (y - i);
+            if (testy < 0) {
+                break; //There's some error and we should probably stop checking
+            }
             Integer blockid = player.getWorld().getBlockTypeIdAt(x, testy, z);
             if (blockid != Material.AIR.getId()) {
-                break;
+                highestUnderPlayer = testy; //highest y coordinate with a block under the player
             }
-            if (i == plugin.flightLimit) {
-                double newy = player.getLocation().getY() - (plugin.flightLimit / 2);
-                player.teleport(new Location(player.getWorld(), player.getLocation().getX(), newy, player.getLocation().getZ(), yaw, pitch));
-                player.sendMessage(ChatColor.RED + "Flying too high is dangerous.");
+            if (highestUnderPlayer != null) { //if it's set we know we hit something to stand on
+                if (i > plugin.flightLimit) { //if they are over the flight limit, bring em down
+                    double newy = testy + plugin.flightLimit;
+                    player.teleport(new Location(player.getWorld(), l.getX(), newy, l.getZ(), yaw, pitch));
+                    player.sendMessage(ChatColor.RED + "Flying too high is dangerous.");
+                }
+                break;
             }
         }
 
@@ -165,6 +167,13 @@ public class RestrictiveCreativePlayerListener implements Listener {
                         return;
                     }
                 }
+                if (block == Material.BURNING_FURNACE.getId()) {
+                    if (!player.hasPermission("rc.furnace.open")) {
+                        player.sendMessage(ChatColor.RED + "You can't open furnaces in this mode.");
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
                 if (block == Material.DISPENSER.getId()) {
                     if (!player.hasPermission("rc.dispenser.open")) {
                         player.sendMessage(ChatColor.RED + "You can't open dispensers in this mode.");
@@ -186,7 +195,21 @@ public class RestrictiveCreativePlayerListener implements Listener {
                         return;
                     }
                 }
+                if (block == Material.WALL_SIGN.getId()) {
+                    //if (!player.hasPermission("rc.enchant.open")) {
+                        player.sendMessage(ChatColor.RED + "You can't use signs in this mode.");
+                        event.setCancelled(true);
+                        return;
+                    //}
+                }
             } else if (action == Action.LEFT_CLICK_BLOCK) {
+                if (block == Material.WALL_SIGN.getId()) {
+                    //if (!player.hasPermission("rc.enchant.open")) {
+                        player.sendMessage(ChatColor.RED + "You can't use/destroy signs in this mode.");
+                        event.setCancelled(true);
+                        return;
+                    //}
+                }
                 if (block == Material.CHEST.getId()) {
                     if (!player.hasPermission("rc.chest.break")) {
                         player.sendMessage(ChatColor.RED + "You can't destroy chests in this mode.");
@@ -195,6 +218,13 @@ public class RestrictiveCreativePlayerListener implements Listener {
                     }
                 }
                 if (block == Material.FURNACE.getId()) {
+                    if (!player.hasPermission("rc.furnace.break")) {
+                        player.sendMessage(ChatColor.RED + "You can't destroy furnaces in this mode.");
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+                if (block == Material.BURNING_FURNACE.getId()) {
                     if (!player.hasPermission("rc.furnace.break")) {
                         player.sendMessage(ChatColor.RED + "You can't destroy furnaces in this mode.");
                         event.setCancelled(true);

@@ -89,9 +89,10 @@ public class RestrictiveCreative extends JavaPlugin {
 
         creativeItemUseBlackList = getConfig().getIntegerList("creative.items.blacklist");
         generalItemUseBlackList = getConfig().getIntegerList("general.items.blacklist");
-        
+
         droppableItems.add(Material.DETECTOR_RAIL);
-        droppableItems.add(Material.DIODE);
+        droppableItems.add(Material.DIODE_BLOCK_OFF);
+        droppableItems.add(Material.DIODE_BLOCK_ON);
         droppableItems.add(Material.LEVER);
         droppableItems.add(Material.RAILS);
         droppableItems.add(Material.REDSTONE_WIRE);
@@ -99,6 +100,7 @@ public class RestrictiveCreative extends JavaPlugin {
         droppableItems.add(Material.TORCH);
         droppableItems.add(Material.WOODEN_DOOR);
         droppableItems.add(Material.IRON_DOOR_BLOCK);
+        droppableItems.add(Material.SIGN);
 
         log.info(pdffile.getName() + " version " + pdffile.getVersion() + " is enabled.");
     }
@@ -135,7 +137,7 @@ public class RestrictiveCreative extends JavaPlugin {
                     } else if (args.length == 1) {
                         if (cs instanceof Player) {
                             Player s = (Player) cs;
-                            if (s.hasPermission("rc.toggle")) {
+                            if (s.hasPermission("rc.toggle") || this.isCreative(s)) {
                                 target = (Player) s;
                             } else {
                                 s.sendMessage(ChatColor.RED + "You don't have permission to do that!");
@@ -285,7 +287,7 @@ public class RestrictiveCreative extends JavaPlugin {
     }
 
     public void toggleCreative(Player p, boolean enable) {
-        String playername = p.getPlayerListName();
+        String playername = p.getName();
         String invPath = getDataFolder() + File.separator + "playerdata";
         String path = invPath + File.separator + playername + ".bin";
         new File(invPath).mkdir();
@@ -324,12 +326,8 @@ public class RestrictiveCreative extends JavaPlugin {
             p.setGameMode(GameMode.CREATIVE);
             this.creative.add(p);
         } else {
-            if (!p.hasPermission("rc.keepinv")) {
+            if (backupFile.exists()) {
                 try {
-                    if (!backupFile.exists()) {
-                        return;
-                    }
-
                     FileInputStream fis = new FileInputStream(backupFile);
                     ObjectInputStream ois = new ObjectInputStream(fis);
 
@@ -351,9 +349,16 @@ public class RestrictiveCreative extends JavaPlugin {
         }
     }
 
+    public boolean isCreative(Player p) {
+        if (p.getGameMode() == GameMode.CREATIVE) {
+            return true;
+        }
+        return false;
+    }
+
     public void loadConfiguration() {
         getConfig().addDefault("creative.fly.heightlimit", 5);
-        
+
         //creative break blacklist/whitelist
         getConfig().addDefault("creative.break.defaultlist", "blacklist");
         List<Integer> breakwhitelist = new ArrayList();
@@ -369,7 +374,7 @@ public class RestrictiveCreative extends JavaPlugin {
         List<Integer> breakblacklist = new ArrayList();
         breakblacklist.add(7);
         getConfig().addDefault("creative.break.blacklist", breakblacklist);
-        
+
         //creative place blacklist/whitelist
         getConfig().addDefault("creative.place.defaultlist", "whitelist");
         List<Integer> placewhitelist = new ArrayList();
@@ -389,7 +394,7 @@ public class RestrictiveCreative extends JavaPlugin {
         placeblacklist.add(51);
         placeblacklist.add(52);
         getConfig().addDefault("creative.place.blacklist", placeblacklist);
-        
+
         //general place blacklist/whitelist
         getConfig().addDefault("general.place.defaultlist", "blacklist");
         List<Integer> genplacewhitelist = new ArrayList();
@@ -405,7 +410,7 @@ public class RestrictiveCreative extends JavaPlugin {
         List<Integer> genplaceblacklist = new ArrayList();
         genplaceblacklist.add(7);
         getConfig().addDefault("general.place.blacklist", genplaceblacklist);
-        
+
         //general break blacklist/whitelist
         getConfig().addDefault("general.break.defaultlist", "blacklist");
         List<Integer> genbreakwhitelist = new ArrayList();
