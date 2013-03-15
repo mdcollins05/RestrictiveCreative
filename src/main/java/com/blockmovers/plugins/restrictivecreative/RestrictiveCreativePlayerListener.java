@@ -4,14 +4,18 @@
  */
 package com.blockmovers.plugins.restrictivecreative;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.*;
 
 /**
@@ -30,7 +34,7 @@ public class RestrictiveCreativePlayerListener implements Listener {
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         Player player = event.getPlayer();
 
-        if (!plugin.creative.contains(player)) {
+        if (!plugin.creative.contains(player.getName())) {
             return;
         }
 
@@ -48,7 +52,7 @@ public class RestrictiveCreativePlayerListener implements Listener {
 
         Player player = event.getPlayer();
 
-        if (!plugin.creative.contains(player)) {
+        if (!plugin.creative.contains(player.getName())) {
             return;
         } else {
             if (!player.isFlying()) {
@@ -88,12 +92,47 @@ public class RestrictiveCreativePlayerListener implements Listener {
                 break;
             }
         }
+    }
 
+    @EventHandler
+    public void preventLaunches(ProjectileLaunchEvent event) {
+//        plugin.getServer().broadcastMessage("Launch Fired.");
+//        LivingEntity e = event.getEntity().getShooter();
+//        if (e instanceof Player) {
+//            Player player = (Player) e;
+//            int item = event.getEntityType().getTypeId();
+//            plugin.getServer().broadcastMessage("Item id: " + item);
+//            if (plugin.creative.contains(player.getName())) {
+//                plugin.getServer().broadcastMessage("Creative mode.");
+//                if (plugin.creativeItemUseBlackList.contains(item)) {
+//                    plugin.getServer().broadcastMessage("Item in list.");
+//                    if (!plugin.checkPerm(player, "creative", "use", item)) {
+//                        plugin.getServer().broadcastMessage("Item blocked.");
+//                        event.setCancelled(true);
+//                        return;
+//                    }
+//                }
+//            } else {
+//                plugin.getServer().broadcastMessage("Survival mode.");
+//                if (plugin.generalItemUseBlackList.contains(item)) {
+//                    plugin.getServer().broadcastMessage("Item in list.");
+//                    if (!plugin.checkPerm(player, "general", "use", item)) {
+//                        plugin.getServer().broadcastMessage("Item blocked.");
+//                        event.setCancelled(true);
+//                        return;
+//                    }
+//                }
+//            }
+//        }
+        if (event.getEntityType() == EntityType.THROWN_EXP_BOTTLE) {
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.isCancelled()) {
+            //Bukkit.broadcastMessage(event.getPlayer() + " " + event.getAction() + " " + event.getPlayer().getItemInHand().getTypeId());
             return;
         }
 
@@ -109,7 +148,7 @@ public class RestrictiveCreativePlayerListener implements Listener {
         //    }
         //}
 
-//        if (plugin.creative.contains(player)) {
+//        if (plugin.creative.contains(player.getName())) {
 //            player.sendMessage("creative mode " + item);
 //            if (plugin.creativeItemUseBlackList.contains(item)) {
 //                player.sendMessage("item in list");
@@ -132,8 +171,8 @@ public class RestrictiveCreativePlayerListener implements Listener {
 //            return; // if not creative dont check below
 //        }
 
-        if (action == Action.RIGHT_CLICK_AIR | action == Action.RIGHT_CLICK_BLOCK) {
-            if (plugin.creative.contains(player)) {
+        if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
+            if (plugin.creative.contains(player.getName())) {
                 if (plugin.creativeItemUseBlackList.contains(item)) {
                     if (!plugin.checkPerm(player, "creative", "use", item)) {
                         event.setCancelled(true);
@@ -151,16 +190,16 @@ public class RestrictiveCreativePlayerListener implements Listener {
 
         }
 
-        if (plugin.creative.contains(player)) {
+        if (plugin.creative.contains(player.getName())) {
             if (action == Action.RIGHT_CLICK_BLOCK) {
-                if (block == Material.CHEST.getId()) {
+                if (block == Material.CHEST.getId() || block == Material.STORAGE_MINECART.getId()) {
                     if (!player.hasPermission("rc.chest.open")) {
                         player.sendMessage(ChatColor.RED + "You can't open chests in this mode.");
                         event.setCancelled(true);
                         return;
                     }
                 }
-                if (block == Material.FURNACE.getId()) {
+                if (block == Material.FURNACE.getId() || block == Material.POWERED_MINECART.getId()) {
                     if (!player.hasPermission("rc.furnace.open")) {
                         player.sendMessage(ChatColor.RED + "You can't open furnaces in this mode.");
                         event.setCancelled(true);
@@ -197,19 +236,19 @@ public class RestrictiveCreativePlayerListener implements Listener {
                 }
                 if (block == Material.WALL_SIGN.getId()) {
                     //if (!player.hasPermission("rc.enchant.open")) {
-                        player.sendMessage(ChatColor.RED + "You can't use signs in this mode.");
-                        event.setCancelled(true);
-                        return;
+                    player.sendMessage(ChatColor.RED + "You can't use signs in this mode.");
+                    event.setCancelled(true);
+                    return;
+                    //}
+                }
+                if (block == Material.SIGN_POST.getId()) {
+                    //if (!player.hasPermission("rc.enchant.open")) {
+                    player.sendMessage(ChatColor.RED + "You can't use signs in this mode.");
+                    event.setCancelled(true);
+                    return;
                     //}
                 }
             } else if (action == Action.LEFT_CLICK_BLOCK) {
-                if (block == Material.WALL_SIGN.getId()) {
-                    //if (!player.hasPermission("rc.enchant.open")) {
-                        player.sendMessage(ChatColor.RED + "You can't use/destroy signs in this mode.");
-                        event.setCancelled(true);
-                        return;
-                    //}
-                }
                 if (block == Material.CHEST.getId()) {
                     if (!player.hasPermission("rc.chest.break")) {
                         player.sendMessage(ChatColor.RED + "You can't destroy chests in this mode.");
@@ -248,7 +287,6 @@ public class RestrictiveCreativePlayerListener implements Listener {
             }
         }
         //player.getServer().broadcastMessage(player + " interact event: " + actionname);
-        return;
     }
 
     @EventHandler
@@ -261,11 +299,11 @@ public class RestrictiveCreativePlayerListener implements Listener {
         Integer item = event.getBucket().getId();
         String playername = player.getName();
 
-        if (!plugin.creative.contains(player)) {
+        if (!plugin.creative.contains(player.getName())) {
             return;
         }
 
-        if (plugin.creative.contains(player)) {
+        if (plugin.creative.contains(player.getName())) {
             if (!plugin.checkPerm(player, "creative", "place", item)) {
                 event.setCancelled(true);
             }
@@ -284,7 +322,7 @@ public class RestrictiveCreativePlayerListener implements Listener {
 
         Player player = event.getPlayer();
 
-        if (!plugin.creative.contains(player)) {
+        if (!plugin.creative.contains(player.getName())) {
             return;
         }
 
@@ -296,12 +334,12 @@ public class RestrictiveCreativePlayerListener implements Listener {
         Player player = event.getPlayer();
 
         if (player.getGameMode() == GameMode.CREATIVE) { //creative mode
-            if (!plugin.creative.contains(player)) {
-                plugin.creative.add(player);
+            if (!plugin.creative.contains(player.getName())) {
+                plugin.creative.add(player.getName());
             }
         } else { //not creative mode
-            if (plugin.creative.contains(player)) {
-                plugin.creative.remove(player);
+            if (plugin.creative.contains(player.getName())) {
+                plugin.creative.remove(player.getName());
             }
         }
     }
@@ -315,12 +353,12 @@ public class RestrictiveCreativePlayerListener implements Listener {
         Player player = event.getPlayer();
 
         if (event.getNewGameMode() == GameMode.CREATIVE) { //creative mode
-            if (!plugin.creative.contains(player)) {
-                plugin.creative.add(player);
+            if (!plugin.creative.contains(player.getName())) {
+                plugin.creative.add(player.getName());
             }
         } else { //not creative mode
-            if (plugin.creative.contains(player)) {
-                plugin.creative.remove(player);
+            if (plugin.creative.contains(player.getName())) {
+                plugin.creative.remove(player.getName());
             }
         }
     }

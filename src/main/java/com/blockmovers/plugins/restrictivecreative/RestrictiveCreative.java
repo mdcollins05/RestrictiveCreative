@@ -24,7 +24,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class RestrictiveCreative extends JavaPlugin {
 
     static final Logger log = Logger.getLogger("Minecraft"); //set up our logger
-    public Set<Player> creative = new HashSet<Player>(); //hashmap for who has this command enabled or not
+    public Set<String> creative = new HashSet<String>(); //hashmap for who has this command enabled or not
     public List<Integer> creativeBreakWhitelist = null;
     public List<Integer> creativeBreakBlacklist = null;
     public List<Integer> creativePlaceWhitelist = null;
@@ -116,7 +116,7 @@ public class RestrictiveCreative extends JavaPlugin {
         Player target = null;
         if (cmd.getName().equalsIgnoreCase("creative")) {
             if (args.length >= 1) {
-                if (args[0].equals("toggle") || args[0].equals("t")) {
+                if (args[0].equalsIgnoreCase("toggle") || args[0].equalsIgnoreCase("t")) {
                     if (args.length == 2) {
                         if (getServer().getPlayer(args[1]) != null) {
                             if (cs instanceof Player) {
@@ -137,7 +137,7 @@ public class RestrictiveCreative extends JavaPlugin {
                     } else if (args.length == 1) {
                         if (cs instanceof Player) {
                             Player s = (Player) cs;
-                            if (s.hasPermission("rc.toggle") || this.isCreative(s)) {
+                            if (s.hasPermission("rc.toggle") || this.isCreative(s.getName())) {
                                 target = (Player) s;
                             } else {
                                 s.sendMessage(ChatColor.RED + "You don't have permission to do that!");
@@ -151,6 +151,31 @@ public class RestrictiveCreative extends JavaPlugin {
                         return false;
                     }
                     this.toggleCreative(target, false);
+                } else if (args[0].equalsIgnoreCase("check") || args[0].equalsIgnoreCase("c")) {
+                    if (cs instanceof Player) {
+                        Player p = (Player) cs;
+                        if (!p.hasPermission("rc.check")) {
+                            p.sendMessage(ChatColor.RED + "You do not have permission to do that.");
+                            return false;
+                        }
+                    }
+                    if (args.length != 2) {
+                        return false;
+                    }
+                    String player = null;
+                    if (getServer().getPlayer(args[1]) != null) {
+                        player = getServer().getPlayer(args[1]).getName();
+                    } else if (getServer().getOfflinePlayer(args[1]) != null) {
+                        player = getServer().getOfflinePlayer(args[1]).getName();
+                    } else {
+                        cs.sendMessage(ChatColor.RED + "User not found.");
+                        return false;
+                    }
+                    if (this.isCreative(player)) {
+                        cs.sendMessage(player + " is in creative mode.");
+                    } else {
+                        cs.sendMessage(player + " is not in creative mode.");
+                    }
                 }
             } else {
                 return false;
@@ -292,7 +317,7 @@ public class RestrictiveCreative extends JavaPlugin {
         String path = invPath + File.separator + playername + ".bin";
         new File(invPath).mkdir();
         File backupFile = new File(path);
-        if (!this.creative.contains(p) | enable) {
+        if (!this.creative.contains(p.getName()) | enable) {
             if (!p.hasPermission("rc.keepinv")) {
                 if (!backupFile.exists()) {
                     try {
@@ -324,7 +349,7 @@ public class RestrictiveCreative extends JavaPlugin {
                 inv.setBoots(null);
             }
             p.setGameMode(GameMode.CREATIVE);
-            this.creative.add(p);
+            this.creative.add(p.getName());
         } else {
             if (backupFile.exists()) {
                 try {
@@ -345,12 +370,12 @@ public class RestrictiveCreative extends JavaPlugin {
                 }
             }
             p.setGameMode(GameMode.SURVIVAL);
-            this.creative.remove(p);
+            this.creative.remove(p.getName());
         }
     }
 
-    public boolean isCreative(Player p) {
-        if (p.getGameMode() == GameMode.CREATIVE) {
+    public boolean isCreative(String p) {
+        if (this.creative.contains(p)) {
             return true;
         }
         return false;
@@ -433,6 +458,7 @@ public class RestrictiveCreative extends JavaPlugin {
         itemblacklist.add(384);
         itemblacklist.add(385);
         itemblacklist.add(259);
+        itemblacklist.add(344);
         getConfig().addDefault("creative.items.blacklist", itemblacklist);
         List<Integer> genitemblacklist = new ArrayList();
         genitemblacklist.add(384);

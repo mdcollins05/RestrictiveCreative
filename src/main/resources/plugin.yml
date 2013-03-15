@@ -1,0 +1,147 @@
+author: MDCollins
+database: false
+description: Restricts certain aspects of creative mode to allow it to work within
+  survival while limiting cheating.
+generator: http://dinnerbone.com/minecraft/tools/pluginator/
+main: com.blockmovers.plugins.restrictivecreative.RestrictiveCreative
+name: RestrictiveCreative
+startup: postworld
+url: http://blockmovers.com/
+version: '0.5'
+commands:
+  creative:
+    usage: /<command> (action) [player]
+    aliases: c
+permissions:
+  rc.check:
+    default: false
+    description: allows the player to see if someone is in creative mode
+  rc.keepinv:
+    default: false
+    description: allows players to keep their inventory
+  rc.toggle:
+    default: false
+    description: allows the player to toggle the command
+  rc.chest.open:
+    default: false
+    description: allows the player to open chests in creative
+  rc.chest.break:
+    default: false
+    description: allows the player to break chests in creative
+  rc.jukebox.open:
+    default: false
+    description: allows the player to open jukeboxes in creative
+  rc.jukebox.break:
+    default: false
+    description: allows the player to break jukeboxes in creative
+  rc.dispenser.open:
+    default: false
+    description: allows the player to open dispensers in creative
+  rc.dispenser.break:
+    default: false
+    description: allows the player to break dispensers in creative
+  rc.furnace.open:
+    default: false
+    description: allows the player to open furnaces in creative
+  rc.furnace.break:
+    default: false
+    description: allows the player to break furnaces in creative
+  rc.enchant.open:
+    default: false
+    description: allows the player to open enchantment tables in creative
+  rc.allow.fly:
+    default: false
+    description: Allows the player above the heightlimit
+  rc.toggle.others:
+    default: false
+    description: allows the player to toggle the command for others
+    children:
+      rc.toggle: true
+  rc.exempt.all:
+    default: false
+    description: allows the player to be exempt from all block lists
+    children:
+      rc.creative.break.whitelist.exempt: true
+      rc.creative.break.blacklist.exempt: true
+      rc.creative.place.whitelist.exempt: true
+      rc.creative.place.blacklist.exempt: true
+      rc.general.break.whitelist.exempt: true
+      rc.general.break.blacklist.exempt: true
+      rc.general.place.whitelist.exempt: true
+      rc.general.place.blacklist.exempt: true
+      rc.creative.items.exempt: true
+      rc.general.items.exempt: true
+#creative mode
+  rc.creative.exempt.all:
+    default: false
+    description: allows the player to be exempt from all block lists
+    children:
+      rc.creative.break.whitelist.exempt: true
+      rc.creative.break.blacklist.exempt: true
+      rc.creative.place.whitelist.exempt: true
+      rc.creative.place.blacklist.exempt: true
+      rc.creative.items.exempt: true
+  rc.creative.items.exempt:
+    default: false
+    description: sets the player exempt from using items
+  rc.creative.break.whitelist.exempt:
+    default: false
+    description: sets the player to exempt for the break whitelist
+  rc.creative.break.blacklist.exempt:
+    default: false
+    description: sets the player to exempt for the break blacklist
+  rc.creative.place.whitelist.exempt:
+    default: false
+    description: sets the player to exempt for the place whitelist
+  rc.creative.place.blacklist.exempt:
+    default: false
+    description: sets the player to exempt for the place blacklist
+  rc.creative.break.whitelist:
+    default: false
+    description: sets the player to use the break whitelist
+  rc.creative.break.blacklist:
+    default: false
+    description: sets the player to use the break blacklist
+  rc.creative.place.whitelist:
+    default: false
+    description: sets the player to use the place whitelist
+  rc.creative.place.blacklist:
+    default: false
+    description: sets the player to use the place blacklist
+#general mode
+  rc.general.exempt.all:
+    default: false
+    description: allows the player to be exempt from all block lists
+    children:
+      rc.general.break.whitelist.exempt: true
+      rc.general.break.blacklist.exempt: true
+      rc.general.place.whitelist.exempt: true
+      rc.general.place.blacklist.exempt: true
+      rc.general.items.exempt: true
+  rc.general.items.exempt:
+    default: false
+    description: sets the player exempt from using items
+  rc.general.break.whitelist.exempt:
+    default: false
+    description: sets the player to exempt for the break whitelist
+  rc.general.break.blacklist.exempt:
+    default: false
+    description: sets the player to exempt for the break blacklist
+  rc.general.place.whitelist.exempt:
+    default: false
+    description: sets the player to exempt for the place whitelist
+  rc.general.place.blacklist.exempt:
+    default: false
+    description: sets the player to exempt for the place blacklist
+  rc.general.break.whitelist:
+    default: false
+    description: sets the player to use the break whitelist
+  rc.general.break.blacklist:
+    default: false
+    description: sets the player to use the break blacklist
+  rc.general.place.whitelist:
+    default: false
+    description: sets the player to use the place whitelist
+  rc.general.place.blacklist:
+    default: false
+    description: sets the player to use the place blacklist

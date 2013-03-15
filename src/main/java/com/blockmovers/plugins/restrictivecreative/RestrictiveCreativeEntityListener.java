@@ -6,6 +6,7 @@ package com.blockmovers.plugins.restrictivecreative;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -33,11 +34,19 @@ public class RestrictiveCreativeEntityListener implements Listener {
         if (event instanceof EntityDamageByEntityEvent) {
             Entity attacker = ((EntityDamageByEntityEvent) event.getEntity().getLastDamageCause()).getDamager();
             if (attacker instanceof Player) {
-                Player player = (Player) ((EntityDamageByEntityEvent) event.getEntity().getLastDamageCause()).getDamager();
-                if (!plugin.creative.contains(player)) {
-                    return;
-                } else {
+                Player player = (Player) attacker;
+                if (plugin.creative.contains(player.getName())) {
                     event.setCancelled(true);
+                }
+            }
+            if (attacker instanceof Projectile) {
+                Projectile a = (Projectile) attacker;
+                Entity e = a.getShooter();
+                if (e instanceof Player) {
+                    Player player = (Player) e;
+                    if (plugin.creative.contains(player.getName())) {
+                        event.setCancelled(true);
+                    }
                 }
             }
         }
@@ -54,7 +63,7 @@ public class RestrictiveCreativeEntityListener implements Listener {
         if (target instanceof Player) {
             Player player = (Player) event.getTarget();
             //plugin.getServer().broadcastMessage(target + " targeted!");
-            if (!plugin.creative.contains(player)) {
+            if (!plugin.creative.contains(player.getName())) {
                 return;
             } else {
                 event.setCancelled(true);

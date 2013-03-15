@@ -1,0 +1,11 @@
+XXDisable creative mode item drops/pickups
+XX --Drops should dissappear from inventory
+XXDiable player damaging mobs/players
+XXDisable creative mode opening/destroying chests
+XXLimit creative mode blocks/items able to spawn
+XX --Whitelist
+xx --Blacklist
+
+xxPermissions
+
+XXSeperate inventories for creative/regular

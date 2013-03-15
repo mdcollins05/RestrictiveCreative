@@ -1,18 +1,7 @@
-author: MDCollins
-database: false
-description: Restricts certain aspects of creative mode to allow it to work within
-  survival while limiting cheating.
-generator: http://dinnerbone.com/minecraft/tools/pluginator/
-main: com.blockmovers.plugins.restrictivecreative.RestrictiveCreative
-name: RestrictiveCreative
-startup: postworld
-url: http://blockmovers.com/
-version: '0.5'
-commands:
-  creative:
-    usage: /<command> (action) [player]
-    aliases: c
 permissions:
+  rc.check:
+    default: false
+    description: allows the player to see if someone is in creative mode
   rc.keepinv:
     default: false
     description: allows players to keep their inventory

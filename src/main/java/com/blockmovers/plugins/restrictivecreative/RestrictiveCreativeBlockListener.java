@@ -36,7 +36,7 @@ public class RestrictiveCreativeBlockListener implements Listener {
         Integer item = event.getBlockPlaced().getTypeId();
         //String playername = player.getName();
 
-        if (plugin.creative.contains(player)) {
+        if (plugin.creative.contains(player.getName())) {
             if (!plugin.checkPerm(player, "creative", "place", item)) {
                 event.setCancelled(true);
             }
@@ -58,21 +58,21 @@ public class RestrictiveCreativeBlockListener implements Listener {
         Integer item = event.getBlock().getTypeId();
         //String playername = player.getName();
 
-        if (!plugin.creative.contains(player)) {
+        if (!plugin.creative.contains(player.getName())) {
             return;
         }
 
         //player.getServer().broadcastMessage(playername + " broke " + item + ". looking for " + Material.BEDROCK.getId());
 
-        if (plugin.creative.contains(player)) {
+        if (plugin.creative.contains(player.getName())) {
             if (!plugin.checkPerm(player, "creative", "break", item)) {
                 event.setCancelled(true);
-            } else {
-                Block blockAbove = event.getBlock().getRelative(BlockFace.UP);
-                if (plugin.droppableItems.contains(blockAbove.getType())) {
-                    blockAbove.setType(Material.AIR);
-                }
-            }
+            } //else {
+                //Block blockAbove = event.getBlock().getRelative(BlockFace.UP);
+                //if (plugin.droppableItems.contains(blockAbove.getType())) {
+                    //blockAbove.setType(Material.AIR);
+                //}
+            //}
         } else {
             if (!plugin.checkPerm(player, "general", "break", item)) {
                 event.setCancelled(true);
