@@ -7,7 +7,7 @@ main: com.blockmovers.plugins.restrictivecreative.RestrictiveCreative
 name: RestrictiveCreative
 startup: postworld
 url: http://blockmovers.com/
-version: '0.5'
+version: '${version}'
 commands:
   creative:
     usage: /<command> (action) [player]
